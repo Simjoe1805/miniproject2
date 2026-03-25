@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historical Stock Strategy Backtester</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Project 2 - Historical Stock Backtester</p>
+        <h1>Test real stocks against real market history.</h1>
+        <p class="hero-text">
+          Enter a stock symbol, choose a time window, and compare trading strategies against
+          actual historical price movement. The app fetches market data, runs a browser-side
+          backtest, and shows trades, drawdowns, and performance against buy and hold.
+        </p>
+      </div>
+      <div class="hero-card">
+        <p class="card-label">What Changed</p>
+        <h2>This version uses historical stock data instead of synthetic Monte Carlo paths.</h2>
+        <p>
+          It is still educational and should not be treated as financial advice. Strategy signals
+          are simplified and execute on the bar close inside the selected range.
+        </p>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="panel controls-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Data and strategy</p>
+            <h2>Configure the backtest</h2>
+          </div>
+        </div>
+
+        <form id="backtest-form" class="controls-grid">
+          <div class="control-card">
+            <label class="field-stack" for="apiKeyInput">
+              <span class="field-label">Alpha Vantage API key</span>
+              <input id="apiKeyInput" name="apiKey" type="text" autocomplete="off" placeholder="demo">
+            </label>
+            <p class="field-help">
+              Use <code>demo</code> for IBM sample data. For other symbols, enter your own key.
+            </p>
+          </div>
+
+          <div class="dual-grid">
+            <label class="control-card field-stack" for="symbolInput">
+              <span class="field-label">Stock symbol</span>
+              <input id="symbolInput" name="symbol" type="text" autocomplete="off" placeholder="AAPL">
+              <span class="field-help">Examples: <code>IBM</code>, <code>AAPL</code>, <code>MSFT</code>, <code>SHOP.TRT</code></span>
+            </label>
+
+            <label class="control-card field-stack" for="frequencySelect">
+              <span class="field-label">Data frequency</span>
+              <select id="frequencySelect" name="frequency">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <span class="field-help">Daily is best for shorter ranges. Weekly and monthly work better for multi-year tests.</span>
+            </label>
+          </div>
+
+          <div class="dual-grid">
+            <label class="control-card field-stack" for="startDateInput">
+              <span class="field-label">Start date</span>
+              <input id="startDateInput" name="startDate" type="date">
+            </label>
+
+            <label class="control-card field-stack" for="endDateInput">
+              <span class="field-label">End date</span>
+              <input id="endDateInput" name="endDate" type="date">
+            </label>
+          </div>
+
+          <div class="range-strip" aria-label="Range presets">
+            <button class="range-button" type="button" data-range="1m">1M</button>
+            <button class="range-button" type="button" data-range="6m">6M</button>
+            <button class="range-button" type="button" data-range="1y">1Y</button>
+            <button class="range-button" type="button" data-range="3y">3Y</button>
+            <button class="range-button" type="button" data-range="5y">5Y</button>
+            <button class="range-button" type="button" data-range="max">MAX</button>
+          </div>
+
+          <div class="dual-grid">
+            <label class="control-card field-stack" for="startingCapitalInput">
+              <span class="field-label">Starting capital</span>
+              <input id="startingCapitalInput" name="startingCapital" type="number" min="1000" step="500">
+              <span class="field-help">The backtest uses full allocation when a strategy is in position.</span>
+            </label>
+
+            <label class="control-card field-stack" for="strategySelect">
+              <span class="field-label">Strategy</span>
+              <select id="strategySelect" name="strategy">
+                <option value="buy-hold">Buy and hold</option>
+                <option value="sma">Moving average crossover</option>
+                <option value="rsi">RSI reversal</option>
+                <option value="breakout">Breakout</option>
+              </select>
+              <span class="field-help" id="strategyDescription">Buy on the first bar and hold until the end of the selected range.</span>
+            </label>
+          </div>
+
+          <div class="strategy-panels">
+            <div class="parameter-card is-visible" data-strategy-panel="buy-hold">
+              <p class="section-kicker">Strategy rules</p>
+              <p>No extra parameters. The benchmark and the strategy are the same in this mode.</p>
+            </div>
+
+            <div class="parameter-card" data-strategy-panel="sma">
+              <p class="section-kicker">Strategy rules</p>
+              <div class="dual-grid compact-grid">
+                <label class="field-stack" for="fastWindowInput">
+                  <span class="field-label">Fast SMA</span>
+                  <input id="fastWindowInput" name="fastWindow" type="number" min="2" step="1">
+                </label>
+                <label class="field-stack" for="slowWindowInput">
+                  <span class="field-label">Slow SMA</span>
+                  <input id="slowWindowInput" name="slowWindow" type="number" min="3" step="1">
+                </label>
+              </div>
+              <p class="field-help">Enter when fast SMA is above slow SMA. Exit when it falls back below.</p>
+            </div>
+
+            <div class="parameter-card" data-strategy-panel="rsi">
+              <p class="section-kicker">Strategy rules</p>
+              <div class="triple-grid compact-grid">
+                <label class="field-stack" for="rsiPeriodInput">
+                  <span class="field-label">RSI period</span>
+                  <input id="rsiPeriodInput" name="rsiPeriod" type="number" min="2" step="1">
+                </label>
+                <label class="field-stack" for="oversoldInput">
+                  <span class="field-label">Oversold</span>
+                  <input id="oversoldInput" name="oversold" type="number" min="1" max="50" step="1">
+                </label>
+                <label class="field-stack" for="overboughtInput">
+                  <span class="field-label">Overbought</span>
+                  <input id="overboughtInput" name="overbought" type="number" min="50" max="99" step="1">
+                </label>
+              </div>
+              <p class="field-help">Enter when RSI drops below oversold. Exit when RSI rises above overbought.</p>
+            </div>
+
+            <div class="parameter-card" data-strategy-panel="breakout">
+              <p class="section-kicker">Strategy rules</p>
+              <label class="field-stack" for="breakoutLookbackInput">
+                <span class="field-label">Breakout lookback</span>
+                <input id="breakoutLookbackInput" name="breakoutLookback" type="number" min="5" step="1">
+              </label>
+              <p class="field-help">Enter when price closes above the prior lookback high. Exit when it closes below the prior lookback low.</p>
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <button class="primary-button" type="submit">Run Backtest</button>
+            <button class="secondary-button" type="button" id="resetButton">Reset Defaults</button>
+          </div>
+        </form>
+
+        <div class="educational-note">
+          <p class="section-kicker">Important note</p>
+          <p id="dataNote">
+            This app fetches historical prices from Alpha Vantage in the browser. Standard keys
+            usually provide enough data for short daily tests and much longer weekly or monthly tests.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Backtest results</p>
+            <h2>Performance dashboard</h2>
+          </div>
+          <div class="status-badge" id="statusBadge">Ready</div>
+        </div>
+
+        <div class="message-banner" id="messageBanner">
+          Choose a symbol and run the backtest to load real historical price data.
+        </div>
+
+        <div class="metrics-grid">
+          <article class="metric-card">
+            <p>Strategy return</p>
+            <h3 id="strategyReturnMetric">0%</h3>
+            <span id="strategyReturnNote">Compared with starting capital</span>
+          </article>
+          <article class="metric-card">
+            <p>Buy and hold</p>
+            <h3 id="benchmarkReturnMetric">0%</h3>
+            <span id="benchmarkReturnNote">Benchmark return for the same period</span>
+          </article>
+          <article class="metric-card">
+            <p>Final portfolio</p>
+            <h3 id="finalValueMetric">$0</h3>
+            <span id="finalValueNote">Ending value after all exits</span>
+          </article>
+          <article class="metric-card">
+            <p>Max drawdown</p>
+            <h3 id="drawdownMetric">0%</h3>
+            <span id="drawdownNote">Largest peak to trough decline</span>
+          </article>
+          <article class="metric-card">
+            <p>Trades</p>
+            <h3 id="tradeCountMetric">0</h3>
+            <span id="tradeCountNote">Completed round trips</span>
+          </article>
+          <article class="metric-card accent-card">
+            <p>Win rate</p>
+            <h3 id="winRateMetric">0%</h3>
+            <span id="winRateNote">Closed trades with positive profit</span>
+          </article>
+        </div>
+
+        <div class="summary-strip">
+          <article class="summary-card">
+            <p>Dataset</p>
+            <h3 id="datasetMetric">No data loaded</h3>
+          </article>
+          <article class="summary-card">
+            <p>Range</p>
+            <h3 id="rangeMetric">-</h3>
+          </article>
+          <article class="summary-card">
+            <p>Current stance</p>
+            <h3 id="stanceMetric">Flat</h3>
+          </article>
+        </div>
+
+        <div class="charts-grid">
+          <article class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h3>Price and signals</h3>
+                <p>Close price with strategy entries and exits over the selected period.</p>
+              </div>
+              <div class="chart-legend" id="priceLegend"></div>
+            </div>
+            <canvas id="priceChart" width="720" height="360" aria-label="Price chart"></canvas>
+          </article>
+
+          <article class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h3>Equity curve</h3>
+                <p>Strategy portfolio value versus buy and hold using the same starting capital.</p>
+              </div>
+              <div class="chart-legend" id="equityLegend"></div>
+            </div>
+            <canvas id="equityChart" width="720" height="360" aria-label="Equity curve chart"></canvas>
+          </article>
+        </div>
+
+        <div class="bottom-grid">
+          <article class="insight-card">
+            <p class="section-kicker">Backtest summary</p>
+            <p id="insightText">
+              The app will summarize how the chosen strategy behaved once historical data is loaded.
+            </p>
+          </article>
+
+          <article class="trade-card">
+            <div class="trade-header">
+              <div>
+                <p class="section-kicker">Trade log</p>
+                <h3>Executed trades</h3>
+              </div>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Entry</th>
+                    <th>Exit</th>
+                    <th>Entry price</th>
+                    <th>Exit price</th>
+                    <th>Return</th>
+                    <th>PnL</th>
+                  </tr>
+                </thead>
+                <tbody id="tradeTableBody">
+                  <tr class="empty-row">
+                    <td colspan="6">No trades yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
