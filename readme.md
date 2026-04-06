@@ -27,6 +27,14 @@ A browser-based educational backtester for running simple trading strategies aga
 - Choose a strategy and set its parameters.
 - Click `Run Backtest`.
 
+## Run It On GitHub
+
+- This repo now includes a GitHub Pages workflow at `.github/workflows/deploy-pages.yml`.
+- Push the repository to GitHub on the `main` branch.
+- In the repository settings, open `Pages` and set the source to `GitHub Actions`.
+- After the workflow finishes, GitHub will publish the site with `index.html`, `styles.css`, and `script.js`.
+- The deployed site will still need a valid Alpha Vantage API key for symbols other than `IBM`.
+
 ## API Notes
 
 - The default `demo` key works best with `IBM`.
