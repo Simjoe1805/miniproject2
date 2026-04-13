@@ -3,299 +3,789 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Historical Stock Strategy Backtester</title>
+  <title>InvestIQ — Stock & Investment Analyzer</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 <body>
-  <div class="page-shell">
-    <header class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Project 2 - Historical Stock Backtester</p>
-        <h1>Test real stocks against real market history.</h1>
-        <p class="hero-text">
-          Enter a stock symbol, choose a time window, and compare trading strategies against
-          actual historical price movement. The app fetches market data, runs a browser-side
-          backtest, and shows trades, drawdowns, and performance against buy and hold.
-        </p>
-      </div>
-      <div class="hero-card">
-        <p class="card-label">What Changed</p>
-        <h2>This version uses historical stock data instead of synthetic Monte Carlo paths.</h2>
-        <p>
-          It is still educational and should not be treated as financial advice. Strategy signals
-          are simplified and execute on the bar close inside the selected range.
-        </p>
-      </div>
-    </header>
 
-    <main class="dashboard">
-      <section class="panel controls-panel">
-        <div class="panel-header">
-          <div>
-            <p class="section-kicker">Data and strategy</p>
-            <h2>Configure the backtest</h2>
+  <nav class="topnav">
+    <div class="nav-brand">
+      <div class="brand-mark">IQ</div>
+      <span class="brand-name">InvestIQ</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="input">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Data Input
+      </button>
+      <button class="nav-tab" data-tab="dashboard">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-tab" data-tab="chatbot">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        AI Assistant
+      </button>
+      <button class="nav-tab" data-tab="models">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M6 20V10M12 20V4M18 20v-6"/></svg>
+        Models
+      </button>
+      <button class="nav-tab" data-tab="reportchat">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="11" cy="16" r="1"/><path d="M11 12v1"/></svg>
+        Report Chat
+      </button>
+    </div>
+    <div class="nav-status" id="navStatus">No data loaded</div>
+  </nav>
+
+  <main class="app-main">
+
+    <!-- ── INPUT TAB ─────────────────────────────────── -->
+    <section class="tab-panel active" id="tab-input">
+      <div class="tab-hero">
+        <h1>Stock &amp; Investment Analyzer</h1>
+        <p>Enter your stock data manually — no API key required. Fill in as many fields as you have, then click Analyze.</p>
+      </div>
+
+      <div class="input-grid">
+
+        <!-- Company Info -->
+        <div class="card" id="card-company">
+          <div class="card-head">
+            <div class="card-icon blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <h2>Company Information</h2>
+          </div>
+          <div class="form-grid two-col">
+            <label class="form-field">
+              <span>Company Name</span>
+              <input type="text" id="companyName" placeholder="Apple Inc.">
+            </label>
+            <label class="form-field">
+              <span>Ticker Symbol</span>
+              <input type="text" id="tickerSymbol" placeholder="AAPL">
+            </label>
+            <label class="form-field">
+              <span>Sector</span>
+              <select id="sectorSelect">
+                <option value="">Select sector…</option>
+                <option>Technology</option>
+                <option>Healthcare</option>
+                <option>Financials</option>
+                <option>Consumer Discretionary</option>
+                <option>Consumer Staples</option>
+                <option>Energy</option>
+                <option>Industrials</option>
+                <option>Materials</option>
+                <option>Real Estate</option>
+                <option>Utilities</option>
+                <option>Communication Services</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span>Market Cap ($B)</span>
+              <input type="number" id="marketCap" placeholder="2800" min="0" step="0.1">
+            </label>
           </div>
         </div>
 
-        <form id="backtest-form" class="controls-grid">
-          <div class="control-card">
-            <label class="field-stack" for="apiKeyInput">
-              <span class="field-label">Alpha Vantage API key</span>
-              <input id="apiKeyInput" name="apiKey" type="text" autocomplete="off" placeholder="demo">
-            </label>
-            <p class="field-help">
-              Use <code>demo</code> for IBM sample data. For other symbols, enter your own key.
-            </p>
-          </div>
-
-          <div class="dual-grid">
-            <label class="control-card field-stack" for="symbolInput">
-              <span class="field-label">Stock symbol</span>
-              <input id="symbolInput" name="symbol" type="text" autocomplete="off" placeholder="AAPL">
-              <span class="field-help">Examples: <code>IBM</code>, <code>AAPL</code>, <code>MSFT</code>, <code>SHOP.TRT</code></span>
-            </label>
-
-            <label class="control-card field-stack" for="frequencySelect">
-              <span class="field-label">Data frequency</span>
-              <select id="frequencySelect" name="frequency">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-              <span class="field-help">Daily is best for shorter ranges. Weekly and monthly work better for multi-year tests.</span>
-            </label>
-          </div>
-
-          <div class="dual-grid">
-            <label class="control-card field-stack" for="startDateInput">
-              <span class="field-label">Start date</span>
-              <input id="startDateInput" name="startDate" type="date">
-            </label>
-
-            <label class="control-card field-stack" for="endDateInput">
-              <span class="field-label">End date</span>
-              <input id="endDateInput" name="endDate" type="date">
-            </label>
-          </div>
-
-          <div class="range-strip" aria-label="Range presets">
-            <button class="range-button" type="button" data-range="1m">1M</button>
-            <button class="range-button" type="button" data-range="6m">6M</button>
-            <button class="range-button" type="button" data-range="1y">1Y</button>
-            <button class="range-button" type="button" data-range="3y">3Y</button>
-            <button class="range-button" type="button" data-range="5y">5Y</button>
-            <button class="range-button" type="button" data-range="max">MAX</button>
-          </div>
-
-          <div class="dual-grid">
-            <label class="control-card field-stack" for="startingCapitalInput">
-              <span class="field-label">Starting capital</span>
-              <input id="startingCapitalInput" name="startingCapital" type="number" min="1000" step="500">
-              <span class="field-help">The backtest uses full allocation when a strategy is in position.</span>
-            </label>
-
-            <label class="control-card field-stack" for="strategySelect">
-              <span class="field-label">Strategy</span>
-              <select id="strategySelect" name="strategy">
-                <option value="buy-hold">Buy and hold</option>
-                <option value="sma">Moving average crossover</option>
-                <option value="rsi">RSI reversal</option>
-                <option value="breakout">Breakout</option>
-              </select>
-              <span class="field-help" id="strategyDescription">Buy on the first bar and hold until the end of the selected range.</span>
-            </label>
-          </div>
-
-          <div class="strategy-panels">
-            <div class="parameter-card is-visible" data-strategy-panel="buy-hold">
-              <p class="section-kicker">Strategy rules</p>
-              <p>No extra parameters. The benchmark and the strategy are the same in this mode.</p>
+        <!-- Price History -->
+        <div class="card" id="card-price">
+          <div class="card-head">
+            <div class="card-icon green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
+            <h2>Historical Price Data</h2>
+          </div>
+          <p class="card-desc">Paste CSV (Date, Price, Volume) or add rows manually. Volume is optional.</p>
 
-            <div class="parameter-card" data-strategy-panel="sma">
-              <p class="section-kicker">Strategy rules</p>
-              <div class="dual-grid compact-grid">
-                <label class="field-stack" for="fastWindowInput">
-                  <span class="field-label">Fast SMA</span>
-                  <input id="fastWindowInput" name="fastWindow" type="number" min="2" step="1">
+          <div class="pill-tabs">
+            <button class="pill-tab active" data-input-tab="csv">Paste CSV</button>
+            <button class="pill-tab" data-input-tab="manual">Manual Rows</button>
+          </div>
+
+          <div class="input-tab-panel active" id="csv-input">
+            <textarea id="csvData" rows="7" placeholder="Date,Price,Volume&#10;2024-01-05,185.92,75234000&#10;2024-01-12,187.15,68120000&#10;2024-01-19,191.56,82340000&#10;..."></textarea>
+            <button class="btn-secondary btn-sm" id="parseCSVBtn">Parse CSV</button>
+          </div>
+
+          <div class="input-tab-panel" id="manual-input">
+            <div id="priceRows">
+              <div class="price-row-header">
+                <span>Date</span><span>Close Price ($)</span><span>Volume (opt.)</span><span></span>
+              </div>
+            </div>
+            <button class="btn-secondary btn-sm" id="addRowBtn">+ Add Row</button>
+          </div>
+
+          <div class="data-badge" id="dataBadge" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="dataBadgeText"></span>
+          </div>
+        </div>
+
+        <!-- Fundamentals -->
+        <div class="card" id="card-fundamentals">
+          <div class="card-head">
+            <div class="card-icon purple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <h2>Fundamental Metrics</h2>
+          </div>
+          <p class="card-desc">Enter as many metrics as available. Fields left blank will be skipped in the analysis.</p>
+
+          <div class="metrics-groups">
+            <div class="metrics-group">
+              <p class="group-label">Pricing</p>
+              <div class="form-grid three-col">
+                <label class="form-field">
+                  <span>Current Price ($)</span>
+                  <input type="number" id="currentPrice" placeholder="185.92" step="0.01">
                 </label>
-                <label class="field-stack" for="slowWindowInput">
-                  <span class="field-label">Slow SMA</span>
-                  <input id="slowWindowInput" name="slowWindow" type="number" min="3" step="1">
+                <label class="form-field">
+                  <span>52-Week High ($)</span>
+                  <input type="number" id="weekHigh52" placeholder="199.62" step="0.01">
+                </label>
+                <label class="form-field">
+                  <span>52-Week Low ($)</span>
+                  <input type="number" id="weekLow52" placeholder="164.08" step="0.01">
                 </label>
               </div>
-              <p class="field-help">Enter when fast SMA is above slow SMA. Exit when it falls back below.</p>
             </div>
 
-            <div class="parameter-card" data-strategy-panel="rsi">
-              <p class="section-kicker">Strategy rules</p>
-              <div class="triple-grid compact-grid">
-                <label class="field-stack" for="rsiPeriodInput">
-                  <span class="field-label">RSI period</span>
-                  <input id="rsiPeriodInput" name="rsiPeriod" type="number" min="2" step="1">
+            <div class="metrics-group">
+              <p class="group-label">Valuation</p>
+              <div class="form-grid three-col">
+                <label class="form-field">
+                  <span>P/E Ratio (TTM)</span>
+                  <input type="number" id="peRatio" placeholder="28.9" step="0.1">
                 </label>
-                <label class="field-stack" for="oversoldInput">
-                  <span class="field-label">Oversold</span>
-                  <input id="oversoldInput" name="oversold" type="number" min="1" max="50" step="1">
+                <label class="form-field">
+                  <span>Forward P/E</span>
+                  <input type="number" id="forwardPE" placeholder="25.2" step="0.1">
                 </label>
-                <label class="field-stack" for="overboughtInput">
-                  <span class="field-label">Overbought</span>
-                  <input id="overboughtInput" name="overbought" type="number" min="50" max="99" step="1">
+                <label class="form-field">
+                  <span>Price/Book</span>
+                  <input type="number" id="pbRatio" placeholder="44.2" step="0.1">
+                </label>
+                <label class="form-field">
+                  <span>EPS (TTM) ($)</span>
+                  <input type="number" id="eps" placeholder="6.43" step="0.01">
+                </label>
+                <label class="form-field">
+                  <span>Beta</span>
+                  <input type="number" id="beta" placeholder="1.25" step="0.01">
                 </label>
               </div>
-              <p class="field-help">Enter when RSI drops below oversold. Exit when RSI rises above overbought.</p>
             </div>
 
-            <div class="parameter-card" data-strategy-panel="breakout">
-              <p class="section-kicker">Strategy rules</p>
-              <label class="field-stack" for="breakoutLookbackInput">
-                <span class="field-label">Breakout lookback</span>
-                <input id="breakoutLookbackInput" name="breakoutLookback" type="number" min="5" step="1">
-              </label>
-              <p class="field-help">Enter when price closes above the prior lookback high. Exit when it closes below the prior lookback low.</p>
+            <div class="metrics-group">
+              <p class="group-label">Growth &amp; Profitability</p>
+              <div class="form-grid three-col">
+                <label class="form-field">
+                  <span>Revenue Growth (YoY %)</span>
+                  <input type="number" id="revenueGrowth" placeholder="8.1" step="0.1">
+                </label>
+                <label class="form-field">
+                  <span>Gross Margin (%)</span>
+                  <input type="number" id="grossMargin" placeholder="45.5" step="0.1">
+                </label>
+                <label class="form-field">
+                  <span>Net Margin (%)</span>
+                  <input type="number" id="netMargin" placeholder="25.3" step="0.1">
+                </label>
+                <label class="form-field">
+                  <span>Return on Equity (%)</span>
+                  <input type="number" id="roe" placeholder="147.9" step="0.1">
+                </label>
+                <label class="form-field">
+                  <span>Return on Assets (%)</span>
+                  <input type="number" id="roa" placeholder="28.9" step="0.1">
+                </label>
+              </div>
+            </div>
+
+            <div class="metrics-group">
+              <p class="group-label">Financial Health &amp; Income</p>
+              <div class="form-grid three-col">
+                <label class="form-field">
+                  <span>Debt / Equity</span>
+                  <input type="number" id="debtEquity" placeholder="1.51" step="0.01">
+                </label>
+                <label class="form-field">
+                  <span>Current Ratio</span>
+                  <input type="number" id="currentRatio" placeholder="1.07" step="0.01">
+                </label>
+                <label class="form-field">
+                  <span>Dividend Yield (%)</span>
+                  <input type="number" id="dividendYield" placeholder="0.53" step="0.01">
+                </label>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="actions-row">
-            <button class="primary-button" type="submit">Run Backtest</button>
-            <button class="secondary-button" type="button" id="resetButton">Reset Defaults</button>
+        <!-- Financial Statements Upload -->
+        <div class="card" id="card-financials" style="grid-column: 1 / -1">
+          <div class="card-head">
+            <div class="card-icon amber">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <h2>Annual Report / Financial Statements</h2>
+            <span class="card-badge">Enables 3-Statement · DCF · Comps</span>
           </div>
-        </form>
-
-        <div class="educational-note">
-          <p class="section-kicker">Important note</p>
-          <p id="dataNote">
-            This app fetches historical prices from Alpha Vantage in the browser. Standard keys
-            usually provide enough data for short daily tests and much longer weekly or monthly tests.
+          <p class="card-desc">
+            Upload an annual report <strong>PDF</strong> — the app will extract revenue, net income, EBITDA, cash flow, and balance sheet figures automatically.
+            Or use the <strong>fallback tab</strong> to paste a manual CSV if you prefer.
           </p>
-        </div>
-      </section>
 
-      <section class="panel output-panel">
-        <div class="panel-header">
-          <div>
-            <p class="section-kicker">Backtest results</p>
-            <h2>Performance dashboard</h2>
+          <div class="pill-tabs" id="finInputTabs">
+            <button class="pill-tab active" data-fin-tab="pdf">PDF Upload</button>
+            <button class="pill-tab" data-fin-tab="csv">Manual CSV</button>
           </div>
-          <div class="status-badge" id="statusBadge">Ready</div>
+
+          <!-- PDF panel -->
+          <div class="fin-input-panel active" id="fin-panel-pdf">
+            <div class="fin-input-layout">
+              <div class="file-drop-zone" id="fileDropZone" tabindex="0" role="button" aria-label="Upload annual report PDF">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6M9 11h3"/></svg>
+                <p>Drag &amp; drop an <strong>Annual Report PDF</strong> here</p>
+                <p>or <label class="file-pick-label" for="financialFileInput">browse for a file</label></p>
+                <p class="file-drop-hint">You can also click here and press <strong>Ctrl+V</strong> to paste a copied PDF file</p>
+                <p class="file-drop-hint">Works with 10-K, 10-Q, Annual Reports, and most earnings PDFs</p>
+                <input type="file" id="financialFileInput" accept=".pdf" style="display:none">
+              </div>
+
+              <div class="pdf-info-panel">
+                <div class="pdf-status-box" id="pdfStatusBox">
+                  <div class="pdf-idle" id="pdfIdle">
+                    <p class="pdf-tip-title">What gets extracted automatically:</p>
+                    <ul class="pdf-tip-list">
+                      <li>Revenue &amp; Revenue Growth</li>
+                      <li>COGS, Gross Profit &amp; Gross Margin</li>
+                      <li>EBITDA &amp; EBIT</li>
+                      <li>Depreciation &amp; Amortization</li>
+                      <li>Net Income &amp; EPS</li>
+                      <li>Cash, Total Assets &amp; Total Debt</li>
+                      <li>Stockholders' Equity</li>
+                      <li>Operating Cash Flow &amp; CapEx</li>
+                    </ul>
+                    <p class="pdf-tip-note">Best results with PDFs from SEC EDGAR, company IR pages, or Bloomberg. Scanned image PDFs are not supported.</p>
+                  </div>
+
+                  <div class="pdf-parsing" id="pdfParsing" style="display:none">
+                    <div class="pdf-spinner"></div>
+                    <p id="pdfParseStatus">Reading PDF…</p>
+                  </div>
+
+                  <div class="pdf-done" id="pdfDone" style="display:none">
+                    <div class="pdf-done-icon">✓</div>
+                    <p id="pdfDoneSummary"></p>
+                    <button class="btn-ghost btn-sm" id="viewExtractedBtn">View Extracted Data</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Extracted preview (collapsed by default) -->
+            <div class="extracted-preview" id="extractedPreview" style="display:none">
+              <div class="extracted-preview-head">
+                <p class="group-label">Extracted Data Preview</p>
+                <button class="btn-ghost btn-sm" id="closePreviewBtn">Close</button>
+              </div>
+              <div class="table-shell fin-table-shell">
+                <table id="extractedTable"><thead></thead><tbody></tbody></table>
+              </div>
+              <p class="pdf-tip-note" style="margin-top:.65rem">Numbers are shown as extracted from the PDF. If any figures look wrong, switch to Manual CSV to correct them.</p>
+            </div>
+          </div>
+
+          <!-- CSV fallback panel -->
+          <div class="fin-input-panel" id="fin-panel-csv">
+            <p class="card-desc" style="margin-bottom:.65rem">Paste a CSV where each row is one fiscal year. Required: <code>Year</code>, <code>Revenue</code>.</p>
+            <textarea id="financialCSV" rows="6" placeholder="Year,Revenue,COGS,EBITDA,DA,NetIncome,EPS,Cash,TotalAssets,TotalDebt,Equity,OperatingCF,CapEx&#10;2020,274515,169559,77344,11289,57411,3.28,38016,323888,112436,65339,80674,7309&#10;2021,365817,212981,120233,12519,94680,5.67,62639,351002,124719,63090,104038,11085&#10;2022,394328,223546,130541,11284,99803,6.15,23646,352755,120069,50672,122151,10708&#10;2023,383285,214137,123507,11519,96995,6.16,29965,352583,111135,62146,110543,11248"></textarea>
+            <div class="fin-btn-row" style="margin-top:.6rem">
+              <button class="btn-secondary btn-sm" id="parseFinancialsBtn">Parse CSV</button>
+              <button class="btn-ghost btn-sm" id="loadSampleFinancialsBtn">Load AAPL Sample</button>
+              <button class="btn-ghost btn-sm" id="downloadSampleCSVBtn">⬇ Download Template</button>
+            </div>
+          </div>
+
+          <div class="data-badge" id="financialBadge" style="display:none; margin-top:.85rem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="financialBadgeText"></span>
+          </div>
         </div>
 
-        <div class="message-banner" id="messageBanner">
-          Choose a symbol and run the backtest to load real historical price data.
+      </div>
+
+      <div class="action-bar">
+        <button class="btn-primary" id="analyzeBtn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Analyze Investment
+        </button>
+        <button class="btn-ghost" id="loadSampleBtn">Load Sample Data (AAPL)</button>
+        <button class="btn-ghost" id="clearBtn">Clear All</button>
+      </div>
+    </section>
+
+    <!-- ── DASHBOARD TAB ──────────────────────────────── -->
+    <section class="tab-panel" id="tab-dashboard">
+      <div class="empty-state" id="dashboardEmpty">
+        <div class="empty-glyph">📊</div>
+        <h2>No Analysis Yet</h2>
+        <p>Head to the Data Input tab, fill in your stock data, and click Analyze.</p>
+        <button class="btn-secondary" onclick="switchTab('input')">Go to Input</button>
+      </div>
+
+      <div id="dashboardContent" style="display:none">
+        <!-- Stock header -->
+        <div class="stock-header">
+          <div class="stock-id">
+            <div class="ticker-badge" id="headerTicker">--</div>
+            <div>
+              <h1 id="headerName">--</h1>
+              <p id="headerMeta" class="muted">--</p>
+            </div>
+          </div>
+          <div class="grade-block">
+            <p class="grade-label">Investment Grade</p>
+            <div class="grade-ring" id="gradeRing">
+              <span id="investmentGrade">--</span>
+            </div>
+          </div>
         </div>
 
-        <div class="metrics-grid">
-          <article class="metric-card">
-            <p>Strategy return</p>
-            <h3 id="strategyReturnMetric">0%</h3>
-            <span id="strategyReturnNote">Compared with starting capital</span>
-          </article>
-          <article class="metric-card">
-            <p>Buy and hold</p>
-            <h3 id="benchmarkReturnMetric">0%</h3>
-            <span id="benchmarkReturnNote">Benchmark return for the same period</span>
-          </article>
-          <article class="metric-card">
-            <p>Final portfolio</p>
-            <h3 id="finalValueMetric">$0</h3>
-            <span id="finalValueNote">Ending value after all exits</span>
-          </article>
-          <article class="metric-card">
-            <p>Max drawdown</p>
-            <h3 id="drawdownMetric">0%</h3>
-            <span id="drawdownNote">Largest peak to trough decline</span>
-          </article>
-          <article class="metric-card">
-            <p>Trades</p>
-            <h3 id="tradeCountMetric">0</h3>
-            <span id="tradeCountNote">Completed round trips</span>
-          </article>
-          <article class="metric-card accent-card">
-            <p>Win rate</p>
-            <h3 id="winRateMetric">0%</h3>
-            <span id="winRateNote">Closed trades with positive profit</span>
-          </article>
+        <!-- Score strip -->
+        <div class="score-strip">
+          <div class="score-tile">
+            <p>Valuation</p>
+            <div class="score-track"><div class="score-fill" id="fillValuation"></div></div>
+            <span class="score-num" id="numValuation">--</span>
+          </div>
+          <div class="score-tile">
+            <p>Growth</p>
+            <div class="score-track"><div class="score-fill" id="fillGrowth"></div></div>
+            <span class="score-num" id="numGrowth">--</span>
+          </div>
+          <div class="score-tile">
+            <p>Fin. Health</p>
+            <div class="score-track"><div class="score-fill" id="fillHealth"></div></div>
+            <span class="score-num" id="numHealth">--</span>
+          </div>
+          <div class="score-tile">
+            <p>Momentum</p>
+            <div class="score-track"><div class="score-fill" id="fillMomentum"></div></div>
+            <span class="score-num" id="numMomentum">--</span>
+          </div>
+          <div class="score-tile">
+            <p>Income</p>
+            <div class="score-track"><div class="score-fill" id="fillIncome"></div></div>
+            <span class="score-num" id="numIncome">--</span>
+          </div>
         </div>
 
-        <div class="summary-strip">
-          <article class="summary-card">
-            <p>Dataset</p>
-            <h3 id="datasetMetric">No data loaded</h3>
-          </article>
-          <article class="summary-card">
-            <p>Range</p>
-            <h3 id="rangeMetric">-</h3>
-          </article>
-          <article class="summary-card">
-            <p>Current stance</p>
-            <h3 id="stanceMetric">Flat</h3>
-          </article>
+        <!-- Key metrics row -->
+        <div class="kpi-row">
+          <div class="kpi-tile"><p>Current Price</p><h3 id="kpi-price">--</h3></div>
+          <div class="kpi-tile"><p>P/E Ratio</p><h3 id="kpi-pe">--</h3></div>
+          <div class="kpi-tile"><p>EPS (TTM)</p><h3 id="kpi-eps">--</h3></div>
+          <div class="kpi-tile"><p>Rev. Growth</p><h3 id="kpi-revgrowth">--</h3></div>
+          <div class="kpi-tile"><p>Dividend Yield</p><h3 id="kpi-div">--</h3></div>
+          <div class="kpi-tile"><p>Beta</p><h3 id="kpi-beta">--</h3></div>
+          <div class="kpi-tile"><p>Price Return</p><h3 id="kpi-return">--</h3></div>
+          <div class="kpi-tile"><p>Volatility (Ann.)</p><h3 id="kpi-vol">--</h3></div>
         </div>
 
+        <!-- Charts 2x2 -->
         <div class="charts-grid">
-          <article class="chart-card">
-            <div class="chart-header">
-              <div>
-                <h3>Price and signals</h3>
-                <p>Close price with strategy entries and exits over the selected period.</p>
+          <div class="chart-card">
+            <div class="chart-card-head">
+              <h3>Price History</h3>
+              <div class="ma-toggles">
+                <button class="toggle-btn active" data-ma="none">Price</button>
+                <button class="toggle-btn" data-ma="20">MA 20</button>
+                <button class="toggle-btn" data-ma="50">MA 50</button>
+                <button class="toggle-btn" data-ma="both">Both</button>
               </div>
-              <div class="chart-legend" id="priceLegend"></div>
             </div>
-            <canvas id="priceChart" width="720" height="360" aria-label="Price chart"></canvas>
-          </article>
+            <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+          </div>
 
-          <article class="chart-card">
-            <div class="chart-header">
-              <div>
-                <h3>Equity curve</h3>
-                <p>Strategy portfolio value versus buy and hold using the same starting capital.</p>
-              </div>
-              <div class="chart-legend" id="equityLegend"></div>
-            </div>
-            <canvas id="equityChart" width="720" height="360" aria-label="Equity curve chart"></canvas>
-          </article>
+          <div class="chart-card">
+            <div class="chart-card-head"><h3>Score Breakdown</h3></div>
+            <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-head"><h3>Momentum &amp; RSI</h3></div>
+            <div class="chart-wrap"><canvas id="rsiChart"></canvas></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-head"><h3>Risk Profile</h3></div>
+            <div class="chart-wrap"><canvas id="riskChart"></canvas></div>
+          </div>
         </div>
 
-        <div class="bottom-grid">
-          <article class="insight-card">
-            <p class="section-kicker">Backtest summary</p>
-            <p id="insightText">
-              The app will summarize how the chosen strategy behaved once historical data is loaded.
-            </p>
-          </article>
+        <!-- Analysis summary -->
+        <div class="summary-card">
+          <h3>Investment Summary</h3>
+          <div id="analysisSummary" class="summary-body"></div>
+        </div>
+      </div>
+    </section>
 
-          <article class="trade-card">
-            <div class="trade-header">
-              <div>
-                <p class="section-kicker">Trade log</p>
-                <h3>Executed trades</h3>
+    <!-- ── CHATBOT TAB ────────────────────────────────── -->
+    <section class="tab-panel" id="tab-chatbot">
+      <div class="chat-shell">
+        <aside class="chat-sidebar">
+          <p class="sidebar-title">Suggested Questions</p>
+          <div class="suggestion-list">
+            <button class="suggest-btn" data-q="Is this a good investment?">Is this a good investment?</button>
+            <button class="suggest-btn" data-q="Should I buy this stock?">Should I buy this stock?</button>
+            <button class="suggest-btn" data-q="Is this stock overvalued?">Is this stock overvalued?</button>
+            <button class="suggest-btn" data-q="What is the current trend?">What is the current trend?</button>
+            <button class="suggest-btn" data-q="What are the key risks?">What are the key risks?</button>
+            <button class="suggest-btn" data-q="How is the financial health?">How is the financial health?</button>
+            <button class="suggest-btn" data-q="What is the dividend yield?">What is the dividend yield?</button>
+            <button class="suggest-btn" data-q="What is the volatility?">What is the volatility?</button>
+            <button class="suggest-btn" data-q="Compare P/E to market average">Compare P/E to market average</button>
+            <button class="suggest-btn" data-q="What is a good P/E ratio?">What is a good P/E ratio?</button>
+            <button class="suggest-btn" data-q="Explain beta to me">Explain beta to me</button>
+            <button class="suggest-btn" data-q="What is the overall score?">What is the overall score?</button>
+          </div>
+          <div class="disclaimer">
+            <strong>Disclaimer:</strong> This tool is for educational purposes only and does not constitute financial advice. Always do your own due diligence.
+          </div>
+        </aside>
+
+        <div class="chat-main">
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg bot">
+              <div class="msg-avatar bot">AI</div>
+              <div class="msg-bubble">
+                <p>Hello! I'm your InvestIQ assistant. I can help you analyze stocks and investments based on the data you enter.</p>
+                <p>To get started, go to the <strong>Data Input</strong> tab, fill in your stock information, and click <strong>Analyze</strong>. Then come back here to ask me anything.</p>
+                <p>You can ask me about valuation, risk, trends, financial health, dividends, and more.</p>
               </div>
             </div>
-            <div class="table-shell">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Entry</th>
-                    <th>Exit</th>
-                    <th>Entry price</th>
-                    <th>Exit price</th>
-                    <th>Return</th>
-                    <th>PnL</th>
-                  </tr>
-                </thead>
-                <tbody id="tradeTableBody">
-                  <tr class="empty-row">
-                    <td colspan="6">No trades yet.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
-  </div>
+          </div>
 
-  <script src="script.js" defer></script>
+          <div class="chat-input-row">
+            <input type="text" id="chatInput" placeholder="Ask about this stock… e.g. Is this overvalued?">
+            <button class="btn-send" id="sendChatBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MODELS TAB ────────────────────────────────── -->
+    <section class="tab-panel" id="tab-models">
+      <div class="tab-hero">
+        <h1>Financial Models</h1>
+        <p>Three-statement model, DCF valuation, and trading / precedent transaction comparables — all driven by your uploaded financial data.</p>
+      </div>
+
+      <div class="models-empty" id="modelsEmpty">
+        <div class="empty-glyph">📋</div>
+        <h2>No Financial Data Loaded</h2>
+        <p>Upload or paste a financial statements CSV on the Data Input tab, then return here.</p>
+        <button class="btn-secondary" onclick="switchTab('input')">Go to Input</button>
+      </div>
+
+      <div id="modelsContent" style="display:none">
+
+        <!-- Sub-navigation -->
+        <div class="models-subnav">
+          <button class="models-tab active" data-models-tab="three-stmt">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
+            3-Statement Model
+          </button>
+          <button class="models-tab" data-models-tab="dcf">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            DCF Valuation
+          </button>
+          <button class="models-tab" data-models-tab="comps">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Trading Comps
+          </button>
+          <button class="models-tab" data-models-tab="precedent">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Precedent Transactions
+          </button>
+        </div>
+
+        <!-- ── 3-Statement Model ───────────────────────── -->
+        <div class="models-panel active" id="panel-three-stmt">
+          <div class="three-stmt-charts">
+            <div class="chart-card">
+              <div class="chart-card-head"><h3>Revenue, EBITDA &amp; Net Income</h3></div>
+              <div class="chart-wrap"><canvas id="isChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-head"><h3>Free Cash Flow</h3></div>
+              <div class="chart-wrap"><canvas id="fcfChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="stmt-section">
+            <div class="stmt-title-row">
+              <h3 class="stmt-title">Income Statement</h3>
+              <span class="stmt-unit">Values as entered (no automatic unit conversion)</span>
+            </div>
+            <div class="table-shell fin-table-shell">
+              <table id="incomeTable"><thead></thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <div class="stmt-section">
+            <div class="stmt-title-row"><h3 class="stmt-title">Balance Sheet</h3></div>
+            <div class="table-shell fin-table-shell">
+              <table id="balanceTable"><thead></thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <div class="stmt-section">
+            <div class="stmt-title-row"><h3 class="stmt-title">Cash Flow Statement</h3></div>
+            <div class="table-shell fin-table-shell">
+              <table id="cashflowTable"><thead></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── DCF Valuation ──────────────────────────── -->
+        <div class="models-panel" id="panel-dcf">
+          <div class="dcf-layout">
+
+            <div class="card dcf-assumptions-card">
+              <div class="card-head">
+                <div class="card-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                <h2>DCF Assumptions</h2>
+              </div>
+
+              <div class="form-grid" style="gap:.75rem">
+                <div class="form-grid two-col">
+                  <label class="form-field"><span>WACC (%)</span><input type="number" id="dcfWACC" value="10" step="0.1" min="1" max="30"></label>
+                  <label class="form-field"><span>Terminal Growth Rate (%)</span><input type="number" id="dcfTGR" value="2.5" step="0.1" min="0" max="10"></label>
+                </div>
+                <div class="form-grid two-col">
+                  <label class="form-field"><span>Tax Rate (%)</span><input type="number" id="dcfTaxRate" value="21" step="0.1"></label>
+                  <label class="form-field"><span>Projection Years</span>
+                    <select id="dcfYears">
+                      <option value="3">3 Years</option>
+                      <option value="5" selected>5 Years</option>
+                      <option value="7">7 Years</option>
+                      <option value="10">10 Years</option>
+                    </select>
+                  </label>
+                </div>
+
+                <p class="group-label" style="margin-top:.25rem">Revenue Growth by Year (%)</p>
+                <div class="form-grid two-col" id="growthRateInputs"></div>
+
+                <div class="form-grid two-col">
+                  <label class="form-field"><span>EBITDA Margin (%)</span><input type="number" id="dcfEBITDAMargin" placeholder="auto" step="0.1"></label>
+                  <label class="form-field"><span>D&amp;A as % of Revenue</span><input type="number" id="dcfDA" placeholder="auto" step="0.1"></label>
+                </div>
+                <div class="form-grid two-col">
+                  <label class="form-field"><span>CapEx as % of Revenue</span><input type="number" id="dcfCapEx" placeholder="auto" step="0.1"></label>
+                  <label class="form-field"><span>ΔWorking Capital % of Rev</span><input type="number" id="dcfDeltaWC" value="1.0" step="0.1"></label>
+                </div>
+                <div class="form-grid two-col">
+                  <label class="form-field"><span>Shares Outstanding (M)</span><input type="number" id="dcfShares" placeholder="e.g. 15500" step="1"></label>
+                  <label class="form-field"><span>Net Debt ($M)</span><input type="number" id="dcfNetDebt" placeholder="0" step="1"></label>
+                </div>
+
+                <button class="btn-primary" style="width:100%;margin-top:.25rem" id="runDCFBtn">Run DCF Model</button>
+              </div>
+            </div>
+
+            <div class="dcf-right-col">
+              <div class="dcf-output-grid" id="dcfOutputGrid">
+                <div class="dcf-kpi"><p>Enterprise Value ($M)</p><h3 id="dcfEV">--</h3></div>
+                <div class="dcf-kpi"><p>Equity Value ($M)</p><h3 id="dcfEquity">--</h3></div>
+                <div class="dcf-kpi accent"><p>Implied Share Price</p><h3 id="dcfImplied">--</h3></div>
+                <div class="dcf-kpi"><p>Upside / Downside</p><h3 id="dcfUpside">--</h3></div>
+              </div>
+
+              <div class="stmt-section" id="dcfTableWrap" style="display:none">
+                <div class="stmt-title-row"><h3 class="stmt-title">DCF Projection Table</h3></div>
+                <div class="table-shell fin-table-shell">
+                  <table id="dcfTable"><thead></thead><tbody></tbody></table>
+                </div>
+              </div>
+
+              <div class="stmt-section" id="sensitivityWrap" style="display:none">
+                <div class="stmt-title-row">
+                  <h3 class="stmt-title">Sensitivity — Implied Share Price</h3>
+                  <span class="stmt-unit">Rows = WACC ±2% · Cols = Terminal Growth Rate ±1%</span>
+                </div>
+                <div class="table-shell fin-table-shell">
+                  <table id="sensitivityTable"><thead></thead><tbody></tbody></table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Trading Comps ──────────────────────────── -->
+        <div class="models-panel" id="panel-comps">
+          <div class="comps-header-row">
+            <div>
+              <h2>Trading Comparables</h2>
+              <p class="muted">Enter public company multiples to benchmark valuation and imply a range for your company.</p>
+            </div>
+            <button class="btn-secondary" id="addCompBtn">+ Add Comparable</button>
+          </div>
+
+          <div class="table-shell comps-table-shell">
+            <table id="compsTable">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>EV / Revenue</th>
+                  <th>EV / EBITDA</th>
+                  <th>P / E</th>
+                  <th>EV / EBIT</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="compsBody"></tbody>
+            </table>
+          </div>
+
+          <div id="compsResults" style="display:none">
+            <div class="implied-grid" id="compsImplied"></div>
+            <div class="stmt-section" style="margin-top:1.25rem">
+              <div class="stmt-title-row"><h3 class="stmt-title">Football Field — Implied Equity Value ($M)</h3></div>
+              <div class="chart-wrap" style="height:220px"><canvas id="footballChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Precedent Transactions ─────────────────── -->
+        <div class="models-panel" id="panel-precedent">
+          <div class="comps-header-row">
+            <div>
+              <h2>Precedent Transactions</h2>
+              <p class="muted">Enter historical M&amp;A deal multiples to derive an acquisition-based valuation range.</p>
+            </div>
+            <button class="btn-secondary" id="addTxnBtn">+ Add Transaction</button>
+          </div>
+
+          <div class="table-shell comps-table-shell">
+            <table id="txnTable">
+              <thead>
+                <tr>
+                  <th>Target</th>
+                  <th>Acquirer</th>
+                  <th>Year</th>
+                  <th>EV / Revenue</th>
+                  <th>EV / EBITDA</th>
+                  <th>Control Premium (%)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="txnBody"></tbody>
+            </table>
+          </div>
+
+          <div id="txnResults" style="display:none">
+            <div class="implied-grid" id="txnImplied"></div>
+            <div class="stmt-section" style="margin-top:1.25rem">
+              <div class="stmt-title-row"><h3 class="stmt-title">Football Field — Precedent Transaction Implied Value ($M)</h3></div>
+              <div class="chart-wrap" style="height:220px"><canvas id="txnFootballChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── REPORT CHAT TAB ───────────────────────────── -->
+    <section class="tab-panel" id="tab-reportchat">
+
+      <!-- Empty state: no PDF loaded -->
+      <div class="rc-empty" id="rcEmpty">
+        <div class="rc-empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <h2>No Annual Report Loaded</h2>
+        <p>Upload a company's annual report PDF on the <strong>Data Input</strong> tab to unlock the Report Chat. You can then ask anything about what's in the report — business highlights, management commentary, risks, strategy, and more.</p>
+        <button class="btn-secondary" onclick="switchTab('input')">Upload Annual Report</button>
+      </div>
+
+      <!-- Active state: PDF loaded -->
+      <div class="rc-shell" id="rcShell" style="display:none">
+
+        <aside class="rc-sidebar">
+          <div class="rc-doc-card" id="rcDocCard">
+            <div class="rc-doc-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="rc-doc-info">
+              <p class="rc-doc-name" id="rcDocName">Annual Report</p>
+              <p class="rc-doc-meta" id="rcDocMeta">—</p>
+            </div>
+          </div>
+
+          <div class="rc-section-nav" id="rcSectionNav">
+            <p class="sidebar-title">Jump to Section</p>
+            <div id="rcSectionList"></div>
+          </div>
+
+          <div class="rc-suggest-group">
+            <p class="sidebar-title">Example Questions</p>
+            <div class="rc-suggest-list" id="rcSuggestList">
+              <button class="suggest-btn rc-suggest" data-rq="What happened in the most recent fiscal year?">What happened in the most recent fiscal year?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What were the key business highlights?">What were the key business highlights?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What are the main risks?">What are the main risks?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What is the company's strategy?">What is the company's strategy?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What did management say about revenue?">What did management say about revenue?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What is the company's outlook?">What is the company's outlook?</button>
+              <button class="suggest-btn rc-suggest" data-rq="How did the company perform vs last year?">How did the company perform vs last year?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What products or services does the company offer?">What products or services does the company offer?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What is the competitive landscape?">What is the competitive landscape?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What major events happened this year?">What major events happened this year?</button>
+              <button class="suggest-btn rc-suggest" data-rq="What did management say about costs?">What did management say about costs?</button>
+              <button class="suggest-btn rc-suggest" data-rq="Summarize the MD&A section">Summarize the MD&A section</button>
+            </div>
+          </div>
+
+          <div class="disclaimer">
+            <strong>Note:</strong> Answers are excerpts found directly in your uploaded PDF. This is not an AI language model — it uses keyword and section matching to surface the most relevant passages.
+          </div>
+        </aside>
+
+        <div class="rc-main">
+          <div class="rc-messages" id="rcMessages">
+            <div class="chat-msg bot">
+              <div class="msg-avatar bot">AI</div>
+              <div class="msg-bubble">
+                <p>I've read the annual report. Ask me anything about what's inside — business performance, management commentary, strategy, risk factors, specific years, products, competition, and more.</p>
+                <p>I'll surface the most relevant passages directly from the document.</p>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="rcInput" placeholder="Ask anything about this annual report… e.g. What happened in 2022?">
+            <button class="btn-send" id="rcSendBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
